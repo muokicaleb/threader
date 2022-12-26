@@ -27,8 +27,7 @@ def tweet_replying_to(tweet_id, thread_ids=[]):
 
 def get_original_author(tweet_id):
     """Get author of tweets"""
-    aa = api.statuses_lookup(id_=[tweet_id])
-    aa = aa[0]
+    aa = api.statuses_lookup(id_=[tweet_id])[0]
     user_name = aa.user.screen_name
     user_id = aa.user.id
     tweet_text = aa.text
@@ -38,19 +37,12 @@ def get_original_author(tweet_id):
 def quoted_replies(tweet_id):
     """Get quoted replies"""
     name, original_starter_id, tweet_text = get_original_author(tweet_id)
-    replies = []
-    for tweet in Cursor(api.search, q="url:" + tweet_id, timeout=99999999).items(1000000):
-        replies.append(tweet)
+    replies = [tweet for tweet in Cursor(api.search, q="url:" + tweet_id, timeout=99999999).items() ]
     return replies
 
 def get_media_url(tweet):
     """Function to get list of media urls"""
-    result = []
-    if 'media' in tweet.entities:
-        for image in tweet.entities['media']:
-            result.append(image['media_url'])
-    else:
-        pass
+    result = [image['media_url'] for image in tweet.entities['media'] if 'media' in tweet.entities ]
     return result
 
 
@@ -73,7 +65,7 @@ def output_csv(list_tweets, name, tweet_text, original_starter_id):
 def get_replies_to(tweet_id):
     name, original_starter_id, tweet_text = get_original_author(tweet_id)
     replies = []
-    for tweet in Cursor(api.search, q="to:" + name, timeout=99999999).items(1000000):
+    for tweet in Cursor(api.search, q="to:" + name, timeout=99999999).items():
         if tweet.in_reply_to_status_id_str:
             if tweet.in_reply_to_status_id_str == tweet_id:
                 replies.append(tweet)
