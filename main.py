@@ -69,16 +69,14 @@ def get_replies_to(tweet_id):
         if tweet.in_reply_to_status_id_str:
             if tweet.in_reply_to_status_id_str == tweet_id:
                 replies.append(tweet)
-    quoted = quoted_replies(tweet_id)
-    qrt_replies = quoted + replies
+    qrt_replies = quoted_replies(tweet_id) + replies
     print(f"\n\n\n\n Replies got {len(qrt_replies)}")
     output_csv(qrt_replies, name, tweet_text, original_starter_id)
 
 
 def scrapper():
     start_id = str(input("enter start id of the last tweet in thread "))
-    thread_ids = tweet_replying_to(start_id)
-    thread_ids = thread_ids + [start_id]
+    thread_ids = tweet_replying_to(start_id) + [start_id]
     for n, thread_id in enumerate(thread_ids):
         print(f"Id {n+1} of {len(thread_ids)}")
         get_replies_to(thread_id)
