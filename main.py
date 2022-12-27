@@ -4,13 +4,13 @@ import re
 from tweepy import API
 from tweepy import Cursor
 from tweepy import OAuthHandler
-from cred import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_SECRET
+from cred import (ACCESS_TOKEN, ACCESS_SECRET,
+                  CONSUMER_KEY, CONSUMER_SECRET)
 
 
 # initialize the tweepy api
 auth = OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
 auth.set_access_token(ACCESS_TOKEN, ACCESS_SECRET)
-
 api = API(auth, wait_on_rate_limit=True)
 
 
@@ -37,35 +37,43 @@ def get_original_author(tweet_id):
 def quoted_replies(tweet_id):
     """Get quoted replies"""
     name, original_starter_id, tweet_text = get_original_author(tweet_id)
-    replies = [tweet for tweet in Cursor(api.search, q="url:" + tweet_id, timeout=99999999).items() ]
+    replies = [
+        tweet for tweet in Cursor(
+            api.search,
+            q="url:" + tweet_id,
+            timeout=99999999).items()]
     return replies
+
 
 def get_media_url(tweet):
     """Function to get list of media urls"""
-    result = [image['media_url'] for image in tweet.entities['media'] if 'media' in tweet.entities ]
+    result = [
+        image['media_url']
+        for image in tweet.entities['media']
+        if 'media' in tweet.entities]
     return result
 
 
 def output_csv(list_tweets, name, tweet_text, original_starter_id):
     """Function to output list of tweets to csv"""
-    title_row = ["user_id", "user", "text", "media"]
     os.system(f"mkdir -p ./data/{name}")
-    fname = re.sub('\W+','', tweet_text)
+    fname = re.sub('\\W+', '', tweet_text)
     with open(f"./data/{name}/{fname}.csv", "w+") as f:
         writer = csv.writer(f)
+        title_row = ["user_id", "user", "text", "media"]
         writer.writerow(title_row)
-        for tweet in list_tweets:
-            row = [tweet.user.id, tweet.user.screen_name, tweet.text, get_media_url(tweet)]
-            if tweet.user.id != original_starter_id:
-                writer.writerow(row)
-            else:
-                pass
+        _ = [
+            writer.writerow(
+                [tweet.user.id, tweet.user.screen_name,
+                 tweet.text, get_media_url(tweet)])
+            for tweet in list_tweets
+            if tweet.user.id != original_starter_id]
 
 
 def get_replies_to(tweet_id):
     name, original_starter_id, tweet_text = get_original_author(tweet_id)
     replies = []
-    for tweet in Cursor(api.search, q="to:" + name, timeout=99999999).items():
+    for tweet in Cursor(api.search, q="to:" + name, timeout=9999999).items():
         if tweet.in_reply_to_status_id_str:
             if tweet.in_reply_to_status_id_str == tweet_id:
                 replies.append(tweet)
@@ -82,4 +90,5 @@ def scrapper():
         get_replies_to(thread_id)
 
 
-scrapper()
+if __name__ == "__main__":
+    scrapper()
