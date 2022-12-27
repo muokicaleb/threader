@@ -47,10 +47,11 @@ def quoted_replies(tweet_id):
 
 def get_media_url(tweet):
     """Function to get list of media urls"""
-    result = [
-        image['media_url']
-        for image in tweet.entities['media']
-        if 'media' in tweet.entities]
+    
+    result = []
+    if 'media' in tweet.entities:
+        for image in  tweet.entities['media']:
+            result.append(image['media_url'])
     return result
 
 
@@ -73,10 +74,15 @@ def output_csv(list_tweets, name, tweet_text, original_starter_id):
 def get_replies_to(tweet_id):
     name, original_starter_id, tweet_text = get_original_author(tweet_id)
     replies = []
-    for tweet in Cursor(api.search, q="to:" + name, timeout=9999999).items():
-        if tweet.in_reply_to_status_id_str:
-            if tweet.in_reply_to_status_id_str == tweet_id:
-                replies.append(tweet)
+    replies = [
+        tweet
+        for tweet in Cursor(
+            api.search,
+            q="to:" + name,
+            timeout=9999999).items()
+        if tweet.in_reply_to_status_id_str
+        if tweet.in_reply_to_status_id_str == tweet_id]
+
     qrt_replies = quoted_replies(tweet_id) + replies
     print(f"\n\n\n\n Replies got {len(qrt_replies)}")
     output_csv(qrt_replies, name, tweet_text, original_starter_id)
